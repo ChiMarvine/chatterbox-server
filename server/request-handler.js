@@ -14,7 +14,15 @@ this file and include it in basic-server.js so that it actually works.
 var url = require('url');
 var fs = require('fs');
 var path = require('path');
-var messages = [];
+var messages;
+try {
+  var storedMessages = require('./storedMessages.json');
+  messages = storedMessages.results;
+} 
+catch(e) {
+  messages = [];
+  console.log(messages);
+}
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
   //
@@ -83,17 +91,20 @@ var requestHandler = function(request, response) {
     } else if ( parsedURL.pathname === '/classes/messages/'){
       headers['Content-Type'] = "application/JSON";
       response.writeHead(statusCode, headers);
-      var outgoingData = {results: messages}
+      var outgoingData = {results: messages};
+      fs.writeFile('storedMessages.json', JSON.stringify(outgoingData), "utf-8");
       response.end(JSON.stringify(outgoingData));
     } else if ( parsedURL.pathname === '/log/'){
       headers['Content-Type'] = "application/JSON";
       response.writeHead(statusCode, headers);
-      var outgoingData = {results: messages}
+      var outgoingData = {results: messages};
+      fs.writeFile('storedMessages.json', JSON.stringify(outgoingData), "utf-8");
       response.end(JSON.stringify(outgoingData));
     } else if ( parsedURL.pathname === '/classes/room1/'){
       headers['Content-Type'] = "application/JSON";
       response.writeHead(statusCode, headers);
-      var outgoingData = {results: messages}
+      var outgoingData = {results: messages};
+      fs.writeFile('storedMessages.json', JSON.stringify(outgoingData), "utf-8");
       response.end(JSON.stringify(outgoingData));
     } else {
       statusCode = 404;
