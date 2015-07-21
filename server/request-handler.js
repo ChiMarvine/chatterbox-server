@@ -12,6 +12,8 @@ this file and include it in basic-server.js so that it actually works.
 
 **************************************************************/
 var url = require('url');
+var fs = require('fs');
+var path = require('path');
 var messages = [];
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
@@ -29,21 +31,70 @@ var requestHandler = function(request, response) {
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
   console.log("Serving request type " + request.method + " for url " + request.url);
-
   // The outgoing status.
   var statusCode;
   var headers = defaultCorsHeaders;
-
+  var contentType;
   var parsedURL = url.parse(request.url);
-  console.log(parsedURL.pathname)
+  var filePath = '../client';
+
+
   if(request.method === 'GET'){
     statusCode = 200;
-    if( parsedURL.pathname === '/classes/messages/'){
+    
+    if (!request.headers['content-type']){
+      if(parsedURL.pathname === '/'){
+        filePath += '/index.html';
+      } else {
+        filePath += parsedURL.pathname;
+      }
+      contentType = 'text/html';
+      if (path.extname(filePath) === '.js'){
+        contentType = 'text/javascript';
+      } else if (path.extname(filePath) === '.css'){
+        contentType = 'text/css';
+      } else if (path.extname(filePath) === '.gif'){
+        contentType = 'image/gif';
+      }
+      fs.exists(filePath, function(exists){
+        if (exists){
 
+          fs.readFile(filePath, function(error, content){
+
+            if (error){
+              
+              response.writeHead(500);
+              response.end();
+            } else {
+              console.log(filePath);
+              headers['Content-Type'] = contentType;
+
+              response.writeHead(statusCode, headers)
+              response.end(content, 'utf-8');
+            }
+
+          });
+        } else {
+          response.writeHead(404);
+          response.end();
+        }
+
+      });
+    } else if ( parsedURL.pathname === '/classes/messages/'){
+      headers['Content-Type'] = "application/JSON";
+      response.writeHead(statusCode, headers);
+      var outgoingData = {results: messages}
+      response.end(JSON.stringify(outgoingData));
     } else if ( parsedURL.pathname === '/log/'){
-
-    } else if (parsedURL.pathname === '/classes/room1/'){
-
+      headers['Content-Type'] = "application/JSON";
+      response.writeHead(statusCode, headers);
+      var outgoingData = {results: messages}
+      response.end(JSON.stringify(outgoingData));
+    } else if ( parsedURL.pathname === '/classes/room1/'){
+      headers['Content-Type'] = "application/JSON";
+      response.writeHead(statusCode, headers);
+      var outgoingData = {results: messages}
+      response.end(JSON.stringify(outgoingData));
     } else {
       statusCode = 404;
     }
@@ -54,11 +105,13 @@ var requestHandler = function(request, response) {
       request.on('data', function(data){
         var inputData = JSON.parse(data.toString());
         messages.push(inputData);
+        response.end();
       })
     } else if (parsedURL.pathname = '/classes/room1/') {
       request.on('data', function(data){
         var inputData = JSON.parse(data.toString());
         messages.push(inputData);
+        response.end();
       })
     } 
 
@@ -67,13 +120,12 @@ var requestHandler = function(request, response) {
   }
 
 
-
-  headers['Content-Type'] = "application/JSON";
-  response.writeHead(statusCode, headers);
-  var outgoingData = {results: messages}
-
-  
-  response.end(JSON.stringify(outgoingData));
+  // var sendMessages = function(){
+  //   headers['Content-Type'] = "application/JSON";
+  //   response.writeHead(statusCode, headers);
+  //   var outgoingData = {results: messages}
+  //   response.end(JSON.stringify(outgoingData));
+  // }
 
   // See the note below about CORS headers.
 

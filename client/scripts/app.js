@@ -113,7 +113,7 @@ $(function() {
       }
     },
     populateRooms: function(results) {
-      app.$roomSelect.html('<option value="__newRoom">New room...</option><option value="" selected>Lobby</option></select>');
+      app.$roomSelect.html('<option value="__newRoom">New room...</option><option value="" selected>lobby</option></select>');
 
       if (results) {
         var rooms = {};
