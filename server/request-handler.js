@@ -11,7 +11,8 @@ this file and include it in basic-server.js so that it actually works.
 *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
 
 **************************************************************/
-
+var url = require('url');
+var messages = [];
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
   //
@@ -30,21 +31,34 @@ var requestHandler = function(request, response) {
   console.log("Serving request type " + request.method + " for url " + request.url);
 
   // The outgoing status.
-  var statusCode = 200;
-
-  // See the note below about CORS headers.
+  var statusCode;
   var headers = defaultCorsHeaders;
 
+  var parsedURL = url.parse(request.url);
+  if (request.method === 'GET' && parsedURL.pathname === '/classes/messages' || request.url === '/log' || request.url === '/classes/room'){
+    statusCode = 200;
+  } else if (request.method === 'POST'){
+    statusCode = 201;
+    request.on('data', function(data){
+      var inputData = JSON.parse(data.toString());
+      messages.push(inputData);
+    })
+  } else {
+    statusCode = 404;
+  }
+
+  // See the note below about CORS headers.
+
   // Tell the client we are sending them plain text.
+  headers['Content-Type'] = "application/JSON";
   //
   // You will need to change this if you are sending something
   // other than plain text, like JSON or HTML.
-  headers['Content-Type'] = "text/plain";
 
+  response.writeHead(statusCode, headers);
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
-  response.writeHead(statusCode, headers);
-
+  var outgoingData = {results: messages}
   // Make sure to always call response.end() - Node may not send
   // anything back to the client until you do. The string you pass to
   // response.end() will be the body of the response - i.e. what shows
@@ -52,7 +66,7 @@ var requestHandler = function(request, response) {
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  response.end("Hello, World!");
+  response.end(JSON.stringify(outgoingData));
 };
 
 exports.handleRequest = requestHandler;
