@@ -35,7 +35,7 @@ var requestHandler = function(request, response) {
   var headers = defaultCorsHeaders;
 
   var parsedURL = url.parse(request.url);
-  if (request.method === 'GET' && parsedURL.pathname === '/classes/messages' || request.url === '/log' || request.url === '/classes/room'){
+  if (request.method === 'GET' && (parsedURL.pathname === '/classes/messages' || request.url === '/log' || request.url === '/classes/room1')){
     statusCode = 200;
   } else if (request.method === 'POST'){
     statusCode = 201;
@@ -69,7 +69,7 @@ var requestHandler = function(request, response) {
   response.end(JSON.stringify(outgoingData));
 };
 
-exports.handleRequest = requestHandler;
+exports.requestHandler = requestHandler;
 // These headers will allow Cross-Origin Resource Sharing (CORS).
 // This code allows this server to talk to websites that
 // are on different domains, for instance, your chat client.
